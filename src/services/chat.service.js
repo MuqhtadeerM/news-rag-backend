@@ -1,4 +1,8 @@
 import {
+  getChatHistory,
+  saveChatHistory,
+} from "../repositories/chatMemory.repository.js";
+import {
   initVectorCollection,
   searchSimilarArticles,
 } from "../repositories/vector.repository.js";
@@ -8,6 +12,9 @@ import { generateLLMResponse } from "./llm.service.js";
 export const chatServices = async (sessionId, query) => {
   // ensures the saftey check whetheer the collections exists or not
   await initVectorCollection();
+
+  // laod previous chat conversations
+  const history = await getChatHistory(sessionId);
 
   // generate embeddding for user quuerry
   const queryEmbedding = await generatingEmbedding(query);
@@ -33,5 +40,15 @@ export const chatServices = async (sessionId, query) => {
 
   // generate answer using llm
   const answer = await generateLLMResponse(prompt);
+
+  // save updated conversation
+  const updatedHistory = [
+    ...history,
+    { role: "user", content: query },
+    { role: "assistant", content: answer },
+  ];
+
+  await saveChatHistory(sessionId, updatedHistory);
+
   return answer;
 };
