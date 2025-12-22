@@ -1,6 +1,6 @@
 import { vectorDB } from "../config/vectorDb.js";
 
-const COLLECTION_NAME = process.env.QDRANT_COLLECTION;
+const COLLECTION_NAME = "news_articles";
 
 /**
  * Initialize collection (run once)
@@ -15,7 +15,7 @@ export const initVectorCollection = async () => {
   if (!exists) {
     await vectorDB.createCollection(COLLECTION_NAME, {
       vectors: {
-        size: 10, // must match embedding length
+        size: 10,
         distance: "Cosine",
       },
     });

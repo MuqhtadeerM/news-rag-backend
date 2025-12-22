@@ -18,6 +18,10 @@ export const chatWithRAG = async (req, res, next) => {
       answer: response,
     });
   } catch (error) {
-    next(error);
+    console.error("CHAT ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };

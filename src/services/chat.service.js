@@ -1,54 +1,50 @@
-import {
-  getChatHistory,
-  saveChatHistory,
-} from "../repositories/chatMemory.repository.js";
-import {
-  initVectorCollection,
-  searchSimilarArticles,
-} from "../repositories/vector.repository.js";
-import { generatingEmbedding } from "./embedding.service.js";
-import { generateLLMResponse } from "./llm.service.js";
+export const chatService = async (sessionId, query) => {
+  const startTime = Date.now(); // ✅ MUST exist
 
-export const chatServices = async (sessionId, query) => {
-  // ensures the saftey check whetheer the collections exists or not
   await initVectorCollection();
 
-  // laod previous chat conversations
   const history = await getChatHistory(sessionId);
 
-  // generate embeddding for user quuerry
-  const queryEmbedding = await generatingEmbedding(query);
-
-  // search vector db
+  const queryEmbedding = await generateEmbedding(query);
   const searchResults = await searchSimilarArticles(queryEmbedding, 3);
 
-  //build contet from retrived documets
-
   const context = searchResults
-    .map((result, index) => {
-      `Source ${index + 1}: ${result.payload.content}`;
-    })
+    .map((r, i) => `Source ${i + 1}: ${r.payload.content}`)
     .join("\n\n");
 
-  const prompt = `you are a helpful news assistant Use the following news context to answer the questions
-    
-    Context: ${context}
+  const conversation = history
+    .map((msg) => `${msg.role}: ${msg.content}`)
+    .join("\n");
 
-    Question: 
-    ${query}
-    `;
+  const prompt = `
+Conversation:
+${conversation}
 
-  // generate answer using llm
+Context:
+${context}
+
+Question:
+${query}
+`;
+
   const answer = await generateLLMResponse(prompt);
 
-  // save updated conversation
-  const updatedHistory = [
+  // ✅ DEFINE responseTimeMs HERE
+  const responseTimeMs = Date.now() - startTime;
+
+  await saveChatHistory(sessionId, [
     ...history,
     { role: "user", content: query },
     { role: "assistant", content: answer },
-  ];
+  ]);
 
-  await saveChatHistory(sessionId, updatedHistory);
+  // ✅ USE SAME VARIABLE NAME
+  await saveChatLog({
+    sessionId,
+    userQuery: query,
+    llmResponse: answer,
+    responseTimeMs,
+  });
 
   return answer;
 };

@@ -1,10 +1,9 @@
-import { ingestNewsServices } from "../services/ingest.service.js";
+import { ingestNewsService } from "../services/ingest.service";
 
 export const ingestNews = async (req, res, next) => {
   try {
-
     // fetching the data
-    const result = await ingestNewsServices();
+    const result = await ingestNewsService();
 
     res.status(200).json({
       success: true,
