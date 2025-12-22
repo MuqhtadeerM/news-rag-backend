@@ -1,0 +1,22 @@
+// # Node dependencies
+node_modules
+
+// # Git
+.git
+.gitignore
+
+//  Environment files
+.env
+.env
+
+// # Logs
+npm-debug.log
+yarn-error.log
+
+// # Docker files
+Dockerfile
+docker-compose.yml
+
+// # OS files
+.DS_Store
+Thumbs.db
